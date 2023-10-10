@@ -30,7 +30,7 @@ Implement MIPS-32bits CPU by Verilog.
 - [ ] Implement in Real-World structure   
     - [x] Control Unit
     - [x] ALU Control Unit
-    - [ ] 32-bit Adder
+    - [x] 32-bit Adder
     - [ ] 32-bit Register
     - [ ] Decoder
     - [ ] 32-bit ALU
