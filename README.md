@@ -48,25 +48,47 @@ mips32/
 │
 ├── README.md
 │
-├── sim_1/
+├── pipeline/
+│   ├── sim_1/
+│   │   └── new/
+│   │       ├── tb_alu.v
+│   │       ├── tb_aluctrl_jrctrl.v
+│   │       ├── tb_controlUnit.v
+│   │       ├── tb_data_memory.v
+│   │       ├── tb_instr_mem.v
+│   │       ├── tb_mips32.v
+│   │       └── tb_registerfile.v
 │   │
-│   └── new/
-│       ├── tb_aluctrl_jrctrl.v
-│       ├── tb_controlUnit.v
-│       ├── tb_data_memory.v
-│       ├── tb_instr_mem.v
-│       ├── tb_mips32.v
-│       └── tb_registerfile.v
+│   └── sources_1/
+│       └── new/
+│           ├── alu.v
+│           ├── alucontrol.v
+│           ├── control.v
+│           ├── data_memory.v
+│           ├── inst_memory.v
+│           ├── mips_32.v
+│           └── register_file.v
 │
-└── sources_1/
-    └── new/
-        ├── alu.v
-        ├── alucontrol.v
-        ├── control.v
-        ├── data_memory.v
-        ├── inst_memory.v
-        ├── mips_32.v
-        └── register_file.v
+└── single_cycle/
+│   ├── sim_1/
+│   │   └── new/
+│   │       ├── tb_alu.v
+│   │       ├── tb_aluctrl_jrctrl.v
+│   │       ├── tb_controlUnit.v
+│   │       ├── tb_data_memory.v
+│   │       ├── tb_instr_mem.v
+│   │       ├── tb_mips32.v
+│   │       └── tb_registerfile.v
+│   │
+│   └── sources_1/
+│       └── new/
+│           ├── alu.v
+│           ├── alucontrol.v
+│           ├── control.v
+│           ├── data_memory.v
+│           ├── inst_memory.v
+│           ├── mips_32.v
+│           └── register_file.v
 
 ```
 

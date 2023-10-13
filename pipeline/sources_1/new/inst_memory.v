@@ -1,6 +1,7 @@
-module instr_mem(  
+module inst_mem(  
+    input clk, reset, 
     input [31:0] pc,  
-    output wire [31:0] instruction  
+    output reg [31:0] instruction  
     );  
     wire [3:0] rom_addr = pc[5:2];  
     reg [31:0] rom[255:0];  // 256 words of 32 bits each
@@ -11,9 +12,9 @@ module instr_mem(
         rom[1] = 32'b001000_00001_00010_0000000000000010; // addi $s2, $s1, 2
         rom[2] = 32'b000000_00000_00001_00011_00000_100000; // add $s3, $s0, $s1
         rom[3] = 32'b000000_00010_00001_00011_00000_100100; // and $s3, $s2, $s1
-        rom[4] = 32'b101011_10010_10011_0000000000010000; // sw $s3, $s2, 16
-        rom[5] = 32'b10001110010101000000000000010000; // lw $s4, $s2, 16
-        rom[6] = 32'b10001110011001010000000000010000; // lw $s5, $s2, 16
+        rom[4] = 32'b101011_00010_00011_0000000000001000; // sw $s3, $s2, 8
+        rom[5] = 32'b100011_00010_00100_0000000000010000; // lw $s4, $s2, 16
+        rom[6] = 32'b100011_10011_00101_0000000000010000; // lw $s5, $s2, 16
         rom[7] = 32'b00010010001100100000000000010000; // beq $s1, $s2, 4
         rom[8] = 32'b00100010000101010000000000000100; // addi $s1, $s0, 4
         rom[9] = 32'b00001000000000000000000000000101; // j 5
@@ -37,5 +38,11 @@ module instr_mem(
 //        rom[13] = 32'b00111010101101010000000000000001; // xori $s5, $s5, 1
 //        rom[14] = 32'b00000000000000000000000000000000; // nop
     end  
-    assign instruction = (pc[31:0] < 32 )? rom[rom_addr]: 32'd0;  
+    always@(posedge clk or posedge reset) begin
+        if(reset)
+            instruction <=  32'd0;
+        else
+            instruction <= (pc[31:0] < 32 )? rom[rom_addr]: 32'd0; 
+    end
+        
  endmodule   

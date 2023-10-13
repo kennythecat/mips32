@@ -1,6 +1,7 @@
 module mips_32( 
     input clk,reset,  
     output[31:0] r1,r2, wd,alu_o,
+    output[3:0] alu_ctrl,
     output [4:0] rr1,rr2,wr,
     output[31:0] pc_out, alu_result
    ); 
@@ -25,14 +26,17 @@ module mips_32(
     wire [31:0] no_sign_ext;  
     wire sign_or_zero;  
     // PC   
+    initial pc_current <= 32'd0;
+    
     always @(posedge clk or posedge reset) begin   
-          if(reset) pc_current <= 32'd0;  
-          else pc_current <= pc_next;              
+          if(reset) pc_current <= 32'd0; 
+          else  pc_current <= pc_current+4;
+//          else pc_current <= pc_next;              
     end  
     assign pc4 = pc_current + 32'd4; // pc+4  
-    instr_mem instrucion_memory(pc_current,instr);  
+    inst_mem instrucion_memory(clk, reset, pc_current, instr);  
     assign jump_shift_2 = {instr[25:0],2'b00};
-    CtrlUnit ctrl(reset,instr[31:26], 
+    CtrlUnit ctrl(clk, reset, instr[31:26], 
                 reg_dst, mem_to_reg, alu_op, 
                 jump,  branch, mem_read, mem_write, alu_src,reg_write,sign_or_zero);  
     assign reg_write_dest = (reg_dst==2'b10) ? 5'b11111: ((reg_dst==2'b01) ? instr[15:11] :instr[20:16]);  // First Mux
@@ -54,14 +58,15 @@ module mips_32(
     assign imm_ext = sign_or_zero ? sign_ext_im : zero_ext_im;  
     JR_Ctrl JR_Ctrl_unit(alu_op,instr[5:0],JRCtrl);  
     // ID/EXE     
-    ALUCtrl ALUCtrl_unit(alu_op,instr[5:0],ALU_Ctrl);  
+    ALUCtrl ALUCtrl_unit(clk, reset, alu_op,instr[5:0],ALU_Ctrl);  
     assign read_data2 = alu_src ? imm_ext : reg_read_data_2;  //  2nd Mux
-    
+//    assign read_data2 = imm_ext;
     // check ALU input
     assign r1 = reg_read_data_1;
     assign r2 = read_data2;
-    
-    alu alu_unit(reg_read_data_1,read_data2,ALU_Ctrl,ALU_out,zero_flag);  
+    assign alu_ctrl = ALU_Ctrl;
+    alu alu_unit(clk, reset, reg_read_data_1,read_data2,ALU_Ctrl,ALU_out,zero_flag);  
+//    alu alu_unit(clk, reset, 4,8,ALU_Ctrl,ALU_out,zero_flag); 
     assign im_shift_2 = {imm_ext[29:0], 2'b00};  
     assign no_sign_ext = ~(im_shift_2) + 1'b1;  
     assign PC_beq = (im_shift_2[31] == 1'b1) ? (pc4 - no_sign_ext): (pc4 +im_shift_2);  
@@ -74,7 +79,7 @@ module mips_32(
     assign PC_4beqj = jump ? PC_j : PC_4beq;  
     assign PC_jr = reg_read_data_1;  
     assign pc_next = JRCtrl ? PC_jr : PC_4beqj;  
-    data_memory datamem(clk,ALU_out,reg_read_data_2,mem_write,mem_read,mem_read_data);  
+    data_memory datamem(clk, ALU_out, reg_read_data_2, mem_write, mem_read, mem_read_data);  
     assign reg_write_data = (mem_to_reg == 2'b10) ? pc4:((mem_to_reg == 2'b01)? mem_read_data: ALU_out);  
     assign pc_out = pc_current;  
     assign alu_result = ALU_out;  

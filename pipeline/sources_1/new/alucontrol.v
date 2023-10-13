@@ -1,14 +1,16 @@
 module ALUCtrl(   
+    input clk, reset,
     input [1:0] ALUOp,  
     input [5:0] funct,
     output reg[3:0] ALU_Ctrl  
     );
      wire [7:0] ALUCtrl_In;  
      assign ALUCtrl_In = {ALUOp, funct};  
-     always @(ALUCtrl_In)  
+     always @(*)  
          casex (ALUCtrl_In)  
               8'b00xxxxxx: ALU_Ctrl=4'b0010; // lw/sw  
               8'b01xxxxxx: ALU_Ctrl=4'b0110; // Branch 
+              8'b11xxxxxx: ALU_Ctrl=4'b0010; // ADDI 
              // 8'b01xxxx: ALU_Ctrl=3'b001;      // I-type?
               8'b10100000: ALU_Ctrl=4'b0010; // ADD 
               8'b10100010: ALU_Ctrl=4'b0110; // SUB  
@@ -20,9 +22,12 @@ module ALUCtrl(
  endmodule  
 
 module JR_Ctrl( // Jump Register Control
+    input clk, reset,
     input[1:0] ALUOp, 
     input [3:0] funct,
-    output JRCtrl
+    output reg JRCtrl
     );
-    assign JRCtrl = ({ALUOp, funct}==8'b00001000) ? 1'b1 : 1'b0;
+    always @(*) 
+        JRCtrl = ({ALUOp, funct}==8'b00001000) ? 1'b1 : 1'b0;
+     
  endmodule

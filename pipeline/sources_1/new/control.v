@@ -1,5 +1,5 @@
 module CtrlUnit(
-    input reset,
+    input clk, reset,
     input [5:0] opcode,  
     output reg [1:0] RegDst, MemtoReg, ALUOp,  
     output reg Jump, Branch, MemRead, MemWrite, ALUSrc, RegWrite, sign_or_zero                      
@@ -46,7 +46,7 @@ module CtrlUnit(
                 RegDst = 2'b00; ALUSrc = 2'b00; MemtoReg = 2'b00; Branch = 0; Jump = 1;
                 sign_or_zero = 1;
             end
-            6'b000010: begin // Jal
+            6'b000011: begin // Jal
                 ALUOp = 2'b00;
                 MemRead = 0; MemWrite = 0; RegWrite = 0;
                 RegDst = 2'b10; ALUSrc = 2'b00; MemtoReg = 2'b10; Branch = 0; Jump = 1;

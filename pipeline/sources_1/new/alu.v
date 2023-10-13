@@ -1,4 +1,5 @@
 module alu(
+    input clk, reset,
     input [31:0] a, b,
     input [3:0] ALU_Ctrl,
     output reg [31:0] result,
@@ -19,26 +20,26 @@ module alu(
     );
 
     always @(*) begin
-        sub = 0; 
-        case(ALU_Ctrl)
-            4'b0010: begin // add
-                sub = 0;
-                result = add_sub_result;
-            end
-            4'b0110: begin // sub
-                sub = 1;
-                result = add_sub_result;
-            end
-            4'b0000: result = a & b; // and
-            4'b0001: result = a | b; // or
-            4'b0111: begin
-                if (a < b) result = 32'd1;
-                else result = 32'd0;
-            end
-            default: begin
-                sub = 0; // Default to addition
-                result = add_sub_result;
-            end
+        if(reset) 
+            sub = 0;
+        else 
+            case(ALU_Ctrl)
+                4'b0010: sub = 0;      // add
+                4'b0110: sub = 1;      // sub
+                default: sub = 0;      // Default to addition
+            endcase
+    end
+
+    always @(posedge clk or posedge reset) begin
+        casex(ALU_Ctrl)
+//            4'bxx10: result <= add_sub_result; // add  or sub
+            4'b0010: result <= a+b;
+            4'b0110: result <= a-b;
+            4'b0000: result <= a & b;          // and
+            4'b0001: result <= a | b;          // or
+            4'b0111: result <= (a < b) ? 32'd1 : 32'd0; // less than
+//            default: result <= add_sub_result; // Default to addition
+            default: result <= a+b;
         endcase
     end
 
