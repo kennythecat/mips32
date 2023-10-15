@@ -1,9 +1,23 @@
 module mips_32( 
     input clk,reset,  
-    output[31:0] r1,r2, wd,alu_o,
-    output[3:0] alu_ctrl,
-    output [4:0] rr1,rr2,wr,
-    output[31:0] pc_out, alu_result
+    
+    output [31:0] IFID_pc4, IFID_inst, 
+    
+    output [1:0] ID_alu_op,
+    
+    output [31:0] IDEX_pc4, IDEX_ReadData1, IDEX_ReadData2, IDEX_SignExtend,
+    output [4:0]  IDEX_inst20_16, IDEX_inst15_11,
+    
+    output [1:0] EX_alu_op,
+    output [3:0] alu_ctrl,
+    
+    output [31:0] EXMEM_PC_beq, EXMEM_alu_result, EXMEM_ReadData2, 
+    output [4:0]  EXMEM_WriteRegister,
+    
+    output [31:0] MEMWB_ReadData, MEMWB_alu_result,
+    output [4:0]  MEMWB_WriteRegister,
+    
+    output [31:0] pc_out
    ); 
     reg [31:0] pc_current;  
     wire signed[31:0] pc_next, pc4;  
@@ -35,52 +49,126 @@ module mips_32(
     end  
     assign pc4 = pc_current + 32'd4; // pc+4  
     inst_mem instrucion_memory(clk, reset, pc_current, instr);  
-    assign jump_shift_2 = {instr[25:0],2'b00};
-    CtrlUnit ctrl(clk, reset, instr[31:26], 
-                reg_dst, mem_to_reg, alu_op, 
-                jump,  branch, mem_read, mem_write, alu_src,reg_write,sign_or_zero);  
-    assign reg_write_dest = (reg_dst==2'b10) ? 5'b11111: ((reg_dst==2'b01) ? instr[15:11] :instr[20:16]);  // First Mux
-    assign reg_read_addr_1 = instr[25:21];  
-    assign reg_read_addr_2 = instr[20:16];  
     
-    // Check Register File input
-    assign rr1 = reg_read_addr_1;
-    assign rr2 = reg_read_addr_2;
-    assign wr  = reg_write_dest;
-    assign wd  = reg_write_data;
+//----------------------------------IF/ID-----------------------------------------------------------------------    
+    wire [31:0] id_pc4, id_instr;
+    IF_ID if_id(clk, reset, pc4, instr, 
+                // Output
+                id_pc4, id_instr);
+    // Check point
+    assign IFID_pc4 = id_pc4;
+    assign ID_alu_op =  alu_op;
+    assign IFID_inst = id_instr;
     
+    assign jump_shift_2 = {id_instr[25:0],2'b00};
+    CtrlUnit ctrl(clk, reset, id_instr[31:26], 
+                  // Output  
+                  reg_dst, mem_to_reg, alu_op, 
+                  jump,  branch, mem_read, mem_write, alu_src,reg_write,sign_or_zero);  
+    
+    assign reg_read_addr_1 = id_instr[25:21];  
+    assign reg_read_addr_2 = id_instr[20:16];  
+   
     register_file reg_file(clk,reset,
-                reg_write,reg_read_addr_1,reg_read_addr_2,reg_write_dest,
+                reg_write,reg_read_addr_1,reg_read_addr_2, wb_WriteRegister, 
                 reg_write_data,reg_read_data_1,reg_read_data_2); 
-    // IF/ID
-    assign sign_ext_im = {{16{instr[15]}},instr[15:0]};  
-    assign zero_ext_im = {{16{1'b0}},instr[15:0]};  
+    assign sign_ext_im = {{16{id_instr[15]}},id_instr[15:0]};  
+    assign zero_ext_im = {{16{1'b0}},id_instr[15:0]};  
     assign imm_ext = sign_or_zero ? sign_ext_im : zero_ext_im;  
-    JR_Ctrl JR_Ctrl_unit(alu_op,instr[5:0],JRCtrl);  
-    // ID/EXE     
-    ALUCtrl ALUCtrl_unit(clk, reset, alu_op,instr[5:0],ALU_Ctrl);  
-    assign read_data2 = alu_src ? imm_ext : reg_read_data_2;  //  2nd Mux
-//    assign read_data2 = imm_ext;
-    // check ALU input
-    assign r1 = reg_read_data_1;
-    assign r2 = read_data2;
+    JR_Ctrl JR_Ctrl_unit(alu_op,id_instr[5:0],JRCtrl);  
+//----------------------------------ID/EX----------------------------------------------------------------------- 
+    wire [1:0] ex_RegDst, ex_MemtoReg, ex_ALUOp; 
+    wire ex_Jump, ex_Branch, ex_MemRead, ex_MemWrite, ex_ALUSrc,ex_RegWrite;
+    wire [31:0] ex_pc4, ex_ReadData_1, ex_ReadData_2, ex_SignExtend;
+    wire [4:0] ex_instr20_16, ex_instr15_11;
+    ID_EX id_ex(clk, reset, 
+                reg_dst, mem_to_reg, alu_op, 
+                jump,  branch, mem_read, mem_write, alu_src,reg_write,
+                id_pc4, reg_read_data_1, reg_read_data_2, imm_ext,
+                id_instr[20:16], id_instr[15:11],
+                // output 
+                ex_RegDst, ex_MemtoReg, ex_ALUOp, 
+                ex_Jump, ex_Branch, ex_MemRead, ex_MemWrite, ex_ALUSrc, ex_RegWrite,
+                ex_pc4, ex_ReadData_1, ex_ReadData_2, ex_SignExtend,
+                ex_instr20_16, ex_instr15_11);
+    // Check point            
+    assign IDEX_pc4 = ex_pc4;
+    assign IDEX_ReadData1 = ex_ReadData_1;
+    assign IDEX_ReadData2 = ex_ReadData_2;
+    assign IDEX_SignExtend = ex_SignExtend;
+    assign IDEX_inst20_16 = ex_instr20_16;
+    assign IDEX_inst15_11 = ex_instr15_11;
+    assign EX_alu_op =  ex_ALUOp;
     assign alu_ctrl = ALU_Ctrl;
-    alu alu_unit(clk, reset, reg_read_data_1,read_data2,ALU_Ctrl,ALU_out,zero_flag);  
-//    alu alu_unit(clk, reset, 4,8,ALU_Ctrl,ALU_out,zero_flag); 
-    assign im_shift_2 = {imm_ext[29:0], 2'b00};  
-    assign no_sign_ext = ~(im_shift_2) + 1'b1;  
-    assign PC_beq = (im_shift_2[31] == 1'b1) ? (pc4 - no_sign_ext): (pc4 +im_shift_2);  
-    assign beq_control = branch & zero_flag;  
-    assign PC_4beq = beq_control ? PC_beq : pc4;  
-    assign PC_j = {pc4[31:28],jump_shift_2};
-    //check alu output
-    assign alu_o = ALU_out;
-    // EXE/DM
+    
+    ALUCtrl ALUCtrl_unit(clk, reset, ex_ALUOp, ex_SignExtend[5:0], ALU_Ctrl);  
+    assign read_data2 = ex_ALUSrc ? ex_SignExtend : ex_ReadData_2;  //  2nd Mux
+    
+    alu alu_unit(clk, reset, ex_ReadData_1,read_data2,ALU_Ctrl,ALU_out,zero_flag);  
+    
+    assign im_shift_2 = {ex_SignExtend[29:0], 2'b00};  
+    assign no_sign_ext = ~(ex_SignExtend) + 1'b1;  
+    
+    wire [31:0] Add_Sum;
+    assign Add_Sum = ex_pc4 +im_shift_2;
+    assign PC_beq = (im_shift_2[31] == 1'b1) ? (ex_pc4 - no_sign_ext): Add_Sum; 
+    assign reg_write_dest = (ex_RegDst==2'b10) ? 5'b11111: ((ex_RegDst==2'b01) ? ex_instr15_11:ex_instr20_16);  // First Mux
+    
+//----------------------------------EX/MEM----------------------------------------------------------------------- 
+    wire [1:0] mem_MemtoReg;
+    wire mem_Jump, mem_Branch, mem_MemRead, mem_MemWrite, mem_RegWrite;
+    wire [31:0] mem_add_sum, mem_alu_result, mem_ReadData2;
+    wire mem_zero_flag;
+    wire [4:0] mem_WriteRegister;
+    EX_MEM ex_mem(clk, reset,
+                  ex_MemtoReg,  
+                  ex_Jump, ex_Branch, ex_MemRead, ex_MemWrite, ex_RegWrite,
+                  PC_beq, ALU_out, ex_ReadData_2, 
+                  zero_flag,
+                  reg_write_dest,
+                  // Output
+                  mem_MemtoReg,  
+                  mem_Jump, mem_Branch, mem_MemRead, mem_MemWrite, mem_RegWrite,
+                  mem_PC_beq, mem_alu_result, mem_ReadData2, 
+                  mem_zero_flag,
+                  mem_WriteRegister);
+    // Check Point
+    assign EXMEM_PC_beq = mem_PC_beq;
+    assign EXMEM_alu_result = mem_alu_result;
+    assign EXMEM_ReadData2 = mem_ReadData2; 
+    assign EXMEM_WriteRegister = mem_WriteRegister;
+    
+    assign beq_control = mem_Branch & mem_zero_flag;  
+    data_memory datamem(clk, mem_alu_result, mem_ReadData2, mem_MemWrite, mem_MemRead, mem_read_data);  
+    
+//----------------------------------MEM/WB----------------------------------------------------------------------- 
+    wire [1:0] wb_MemtoReg; 
+    wire wb_RegWrite;
+    wire [31:0] wb_ReadData, wb_alu_result;
+    wire [4:0] wb_WriteRegister;
+    MEM_WB mem_wb(clk, reset,
+                  mem_MemtoReg,  
+                  mem_RegWrite,
+                  mem_read_data, mem_alu_result,
+                  mem_WriteRegister,
+                  // Output
+                  wb_MemtoReg,  
+                  wb_RegWrite,
+                  wb_ReadData, wb_alu_result,
+                  wb_WriteRegister);
+    // Check Point
+    assign MEMWB_ReadData = wb_ReadData;
+    assign MEMWB_alu_result = wb_alu_result;
+    assign MEMWB_WriteRegister = wb_WriteRegister;
+    
+    assign reg_write_data = (wb_MemtoReg == 2'b10) ? pc4:((wb_MemtoReg == 2'b01)? wb_ReadData : wb_alu_result);  
+    
+    assign PC_4beq = beq_control ? mem_PC_beq : ex_pc4;  // WB???
+    assign PC_j = {ex_pc4[31:28],jump_shift_2};  // WB???
     assign PC_4beqj = jump ? PC_j : PC_4beq;  
     assign PC_jr = reg_read_data_1;  
-    assign pc_next = JRCtrl ? PC_jr : PC_4beqj;  
-    data_memory datamem(clk, ALU_out, reg_read_data_2, mem_write, mem_read, mem_read_data);  
-    assign reg_write_data = (mem_to_reg == 2'b10) ? pc4:((mem_to_reg == 2'b01)? mem_read_data: ALU_out);  
+    assign pc_next = JRCtrl ? PC_jr : PC_4beqj; 
+    
+    // Check Result
     assign pc_out = pc_current;  
-    assign alu_result = ALU_out;  
  endmodule  

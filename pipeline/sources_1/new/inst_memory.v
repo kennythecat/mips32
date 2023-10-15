@@ -38,11 +38,17 @@ module inst_mem(
 //        rom[13] = 32'b00111010101101010000000000000001; // xori $s5, $s5, 1
 //        rom[14] = 32'b00000000000000000000000000000000; // nop
     end  
-    always@(posedge clk or posedge reset) begin
+//    always@(posedge clk or posedge reset) begin
+//        if(reset)
+//            instruction <=  32'd0;
+//        else
+//            instruction <= (pc[31:0] < 32 )? rom[rom_addr]: 32'd0; 
+//    end
+    always@(*) begin
         if(reset)
-            instruction <=  32'd0;
+            instruction =  32'd0;
         else
-            instruction <= (pc[31:0] < 32 )? rom[rom_addr]: 32'd0; 
+            instruction = (pc[31:0] < 32 )? rom[rom_addr]: 32'd0; 
     end
         
  endmodule   

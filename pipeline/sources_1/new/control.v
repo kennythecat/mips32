@@ -59,7 +59,7 @@ module CtrlUnit(
                 sign_or_zero = 1;
             end
             default: begin // R-type
-                 ALUOp = 2'b10;
+                ALUOp = 2'b10;
                 MemRead = 0; MemWrite = 0; RegWrite = 1;
                 RegDst = 2'b01; ALUSrc = 2'b00; MemtoReg = 2'b00; Branch = 0; Jump = 0;
                 sign_or_zero = 1;

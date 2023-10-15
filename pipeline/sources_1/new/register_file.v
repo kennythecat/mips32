@@ -8,14 +8,14 @@ module register_file  (
     reg [31:0] reg_array [31:0];  
     integer i;
     
-    always @ (posedge clk or posedge reset) begin  
+    always @ (*) begin  
         if(reset) begin  
             for(i = 0; i < 32; i = i+1) 
                 reg_array[i] = 32'b0;     
         end  
         else begin  
             if(reg_write_en) 
-                reg_array[read_dest] <= write_data;  
+                reg_array[read_dest] = write_data;  
         end  
     end  
     assign read_data1 = ( read_reg1 == 0)? 32'b0 : reg_array[read_reg1];  
