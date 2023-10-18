@@ -6,7 +6,7 @@ module Hazard_Detection_Unit(
     );
     
     always@(*) begin
-        if(IDEX_Rt && (IDEX_Rt==IFID_Rs || IDEX_Rt==IFID_Rt))
+        if(IDEX_MemRead && (IDEX_Rt==IFID_Rs || IDEX_Rt==IFID_Rt))
             stall = 1;
         else
             stall = 0;

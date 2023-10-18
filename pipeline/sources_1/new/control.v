@@ -31,7 +31,7 @@ module CtrlUnit(
                 ALUOp = 2'b01;
                 MemRead = 0; MemWrite = 0; RegWrite = 0;
                 RegDst = 2'b00; ALUSrc = 2'b00; MemtoReg = 2'b00; Branch = 1; Jump = 0;
-                sign_or_zero = 0; // For subtraction in ALU
+                sign_or_zero = 1; // 
             end
 
             6'b000000: begin // R-type
