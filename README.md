@@ -31,13 +31,13 @@ Implement MIPS-32bits CPU by Verilog.
     - [x] Control Unit
     - [x] ALU Control Unit
     - [x] 32-bit Adder
-    - [ ] 32-bit Register
+    - [x] 32-bit Register
     - [ ] Decoder
-    - [ ] 32-bit ALU
+    - [x] 32-bit ALU
     
 - [ ] 5-stage Pipeline
-  - [ ] Forwarding Unit
-  - [ ] Stall Control
+  - [x] Forwarding Unit
+  - [x] Stall Control
   - [ ] Flush Block
 
 

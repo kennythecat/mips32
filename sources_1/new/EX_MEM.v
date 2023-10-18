@@ -4,12 +4,14 @@ module EX_MEM(
     input Jump, Branch, MemRead, MemWrite, RegWrite,
     input [31:0] PC_beq, alu_result, ReadData2, 
     input zero_flag,
-    input [4:0] WriteRegister, instr15_11,
+    input [4:0] WriteRegister,
+    input [31:0] inst,
     output reg [1:0] MemtoReg_o,  
     output reg Jump_o, Branch_o, MemRead_o, MemWrite_o, RegWrite_o,
     output reg [31:0] PC_beq_o, alu_result_o, ReadData2_o, 
     output reg zero_flag_o,
-    output reg [4:0] WriteRegister_o, instr15_11_o
+    output reg [4:0] WriteRegister_o,
+    output reg [31:0] inst_o
 );
 
 always @(posedge clk or posedge reset) begin
@@ -25,7 +27,7 @@ always @(posedge clk or posedge reset) begin
         ReadData2_o <= 32'd0;
         zero_flag_o <= 1'b0;
         WriteRegister_o <= 5'd0;
-        instr15_11_o <= 5'd0;
+        inst_o <= 32'd0;
     end 
     else begin
         MemtoReg_o <= MemtoReg;
@@ -39,7 +41,7 @@ always @(posedge clk or posedge reset) begin
         ReadData2_o <= ReadData2;
         zero_flag_o <= zero_flag;
         WriteRegister_o <= WriteRegister;
-        instr15_11_o <= instr15_11;
+        inst_o <= inst;
     end
 end
 

@@ -1,5 +1,5 @@
 module ID_EX(
-    input clk, reset,
+    input clk, reset, stall,
     input [1:0] RegDst, MemtoReg, ALUOp,  
     input Jump, Branch, MemRead, MemWrite, ALUSrc, RegWrite,
     input [31:0] pc4, ReadData1, ReadData2, SignExtend,
@@ -8,11 +8,11 @@ module ID_EX(
     output reg [1:0] RegDst_o, MemtoReg_o, ALUOp_o,  
     output reg Jump_o, Branch_o, MemRead_o, MemWrite_o, ALUSrc_o, RegWrite_o,
     output reg [31:0] pc4_o, ReadData1_o, ReadData2_o, SignExtend_o,
-    output reg [4:0] inst25_21_o, inst20_16_o, inst15_11_o
+    output reg [31:0] inst_o
     );
 
     always @(posedge clk or posedge reset) begin
-        if (reset) begin
+        if (reset||stall) begin
             RegDst_o <= 2'b00;
             MemtoReg_o <= 2'b00;
             ALUOp_o <= 2'b00;
@@ -26,9 +26,7 @@ module ID_EX(
             ReadData1_o <= 32'd0;
             ReadData2_o <= 32'd0;
             SignExtend_o <= 32'd0;
-            inst25_21_o <= 5'd0;
-            inst20_16_o <= 5'd0;
-            inst15_11_o <= 5'd0;
+            inst_o <= 32'd0;
         end 
         else begin
             RegDst_o <= RegDst;
@@ -44,9 +42,7 @@ module ID_EX(
             ReadData1_o <= ReadData1;
             ReadData2_o <= ReadData2;
             SignExtend_o <= SignExtend;
-            inst25_21_o <= inst[25:21];
-            inst20_16_o <= inst[20:16];
-            inst15_11_o <= inst[15:11];
+            inst_o <= inst;
         end
     end
 
