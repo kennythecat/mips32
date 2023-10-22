@@ -32,13 +32,11 @@ module alu(
 
     always @(*) begin
         casex(ALU_Ctrl)
-//            4'bxx10: result = add_sub_result; // add  or sub
-            4'b0010: result = a + b;
-            4'b0110: result = a - b;
+            4'b0x10: result = add_sub_result;
             4'b0000: result = a & b;          // and
             4'b0001: result = a | b;          // or
             4'b0111: result = (a < b) ? 32'd1 : 32'd0; // less than
-            default: result = add_sub_result; // Default to addition
+            default: result = add_sub_result; 
         endcase
     end
 

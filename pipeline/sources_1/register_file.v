@@ -11,7 +11,8 @@ module register_file  (
     always @ (*) begin  
         if(reset) begin  
             for(i = 0; i < 32; i = i+1) 
-                reg_array[i] = 32'b0;     
+//                reg_array[i] = 32'b0;     
+                reg_array[i] = i;
         end  
         else begin  
             if(reg_write_en) 

@@ -7,11 +7,13 @@ module data_memory(
     
     integer i;  
     reg [31:0] ram [255:0];  // 256 words of 32 bits each
-    wire [8:0] ram_addr = address[9:2];  
+//    wire [8:0] ram_addr = address[9:2];  
+    wire [8:0] ram_addr = address[8:0];  
     
     initial begin  
         for(i=0;i<256;i=i+1)
-         ram[i] = 32'd0;  
+             ram[i] = i;  
+//         ram[i] = 32'd0;  
     end  
     
     always @(*) begin  
@@ -19,4 +21,5 @@ module data_memory(
          ram[ram_addr] = write_data;  
     end  
     assign read_data = (mem_read_en) ? ram[ram_addr]: 32'd0;   
+//    assign read_data = ram[ram_addr];
 endmodule   
