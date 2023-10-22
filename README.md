@@ -4,6 +4,7 @@
 - [MIPS-32bits CPU](#mips-32bits-cpu)
   - [Table of Contents](#table-of-contents)
   - [Description](#description)
+  - [Basic Component](#basic-component)
   - [Hazard](#hazard)
     - [Structure Hazard](#structure-hazard)
     - [Data Hazard](#data-hazard)
@@ -14,7 +15,7 @@
     - [Control Hazard](#control-hazard)
       - [Early Branch](#early-branch)
   - [File Structure](#file-structure)
-  - [Rivision history : initial](#rivision-history--initial)
+  - [Rivision history : v1.0](#rivision-history--v10)
 
 ***
 
@@ -22,14 +23,15 @@
 
 
 Implement MIPS-32bits 5-Stage Pipeline CPU by Verilog. Deal with 3 types of data hazard:
-- [Basic Component](./Component.md)
+
 - Structure Hazard
 - Data Hazard
 - Control Hazard
 ![5-stage MIPS](./png/mips.png)
 
 ***
-
+## Basic Component
+- [Basic Component](./Component.md)
 ## Hazard
 ![Alt text](./png/hazard.png)
 ### Structure Hazard
@@ -87,6 +89,7 @@ Seperate a Memory to Instruction Memory and Data Memory.
   ![forward](./png/forward.png)
   As the above figure, we can forward the result of ALU for next instruction's input of ALU:
   <img src="./png/forwarding1.png" alt="PC" width="600" height="440"/>
+  
   One Clock Cycle Hazards, EX & MEM
   ```
   if(EX_MEM_RegWrite) begin
@@ -176,7 +179,7 @@ Seperate a Memory to Instruction Memory and Data Memory.
   Time:   50000 | wb_instr: 00231020 ,MEMWB_ReadData: 00000000, MEMWB_alu_result: 00000004, MEMWB_WriteRegister: 02
   ```
   Let's consider another situation, if three consequent instruction have data dependency, they all read/write in same register `$2`:
-
+  
   ![forwarding3](./png/forwarding3.png)
   
   Before we set 2 clock cycle forwarding (MEM/WB to ALU), we need to check if there's already 1 clock forwarding by `ForwardA == 2'b00` or `ForwardB == 2'b00`.
@@ -324,7 +327,7 @@ Seperate a Memory to Instruction Memory and Data Memory.
 The error instruction between branch start and branch target.
 #### Early Branch
 We can use xor and nor to compete the two registers in `ID` stage, than if branch equal, we only need to discard the value of `IF/ID` pipe.
-![early_branch](./png/early_branch.png)
+<img src="./png/early_branch.png" alt="PC" width="600" height="440"/>
 
 Let's try the following `branch` instruction:
 ```
@@ -373,48 +376,55 @@ Time:   50000 | wb_instr: 10000002 ,MEMWB_ReadData: 00000000, MEMWB_alu_result: 
 mips32/
 │
 ├── README.md
+├── Component.md
 │
 ├── pipeline/
 │   ├── sim_1/
-│   │   └── new/
-│   │       ├── tb_alu.v
-│   │       ├── tb_aluctrl_jrctrl.v
-│   │       ├── tb_controlUnit.v
-│   │       ├── tb_data_memory.v
-│   │       ├── tb_instr_mem.v
-│   │       ├── tb_mips32.v
-│   │       └── tb_registerfile.v
+│   │   ├── tb_XOR_NOR.v
+│   │   ├── tb_alu.v
+│   │   ├── tb_aluctrl_jrctrl.v
+│   │   ├── tb_controlUnit.v
+│   │   ├── tb_data_memory.v
+│   │   ├── tb_instr_mem.v
+│   │   ├── tb_mips32.v
+│   │   └── tb_registerfile.v
 │   │
 │   └── sources_1/
-│       └── new/
-│           ├── alu.v
-│           ├── alucontrol.v
-│           ├── control.v
-│           ├── data_memory.v
-│           ├── inst_memory.v
-│           ├── mips_32.v
-│           └── register_file.v
+│       ├── IF_ID.v
+│       ├── ID_EX.v
+│       ├── EX_MEM.v
+│       ├── MEM_WB.v
+│       ├── Hazard_Detection_Unit.v
+│       ├── Forwarding_Unit.v
+│       ├── XOR_NOR.v
+│       ├── ProgramCounter.v
+│       ├── Add_Pc.v
+│       ├── alu.v
+│       ├── alucontrol.v
+│       ├── control.v
+│       ├── data_memory.v
+│       ├── inst_memory.v
+│       ├── mips_32.v
+│       └── register_file.v
 │
 └── single_cycle/
 │   ├── sim_1/
-│   │   └── new/
-│   │       ├── tb_alu.v
-│   │       ├── tb_aluctrl_jrctrl.v
-│   │       ├── tb_controlUnit.v
-│   │       ├── tb_data_memory.v
-│   │       ├── tb_instr_mem.v
-│   │       ├── tb_mips32.v
-│   │       └── tb_registerfile.v
+│   │   ├── tb_alu.v
+│   │   ├── tb_aluctrl_jrctrl.v
+│   │   ├── tb_controlUnit.v
+│   │   ├── tb_data_memory.v
+│   │   ├── tb_instr_mem.v
+│   │   ├── tb_mips32.v
+│   │   └── tb_registerfile.v
 │   │
 │   └── sources_1/
-│       └── new/
-│           ├── alu.v
-│           ├── alucontrol.v
-│           ├── control.v
-│           ├── data_memory.v
-│           ├── inst_memory.v
-│           ├── mips_32.v
-│           └── register_file.v
+│       ├── alu.v
+│       ├── alucontrol.v
+│       ├── control.v
+│       ├── data_memory.v
+│       ├── inst_memory.v
+│       ├── mips_32.v
+│       └── register_file.v
 
 ```
-## Rivision history : initial
+## Rivision history : v1.0
