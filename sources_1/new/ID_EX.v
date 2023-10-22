@@ -12,7 +12,7 @@ module ID_EX(
     );
 
     always @(posedge clk or posedge reset) begin
-        if (reset||stall) begin
+        if (reset) begin
             RegDst_o <= 2'b00;
             MemtoReg_o <= 2'b00;
             ALUOp_o <= 2'b00;

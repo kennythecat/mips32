@@ -7,7 +7,8 @@ module IF_ID(
     
     always@(posedge clk or posedge reset) begin
         pc_current_o <= pc_current;
-        if(reset || stall) instr_o <= 0;
+        if(reset) instr_o <= 0;
+        else if (stall);
         else begin
             pc4_o   <= pc4_i;
             instr_o <= instr_i;
